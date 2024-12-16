@@ -5,10 +5,12 @@ package org.chipsalliance.gcd
 
 import chisel3._
 import chisel3.experimental.hierarchy.{instantiable, public, Instance, Instantiate}
-import chisel3.experimental.{SerializableModule, SerializableModuleParameter}
+import chisel3.experimental.{SerializableModule, SerializableModuleGenerator, SerializableModuleParameter}
 import chisel3.probe.{define, Probe, ProbeValue}
 import chisel3.properties.{AnyClassType, Class, Property}
 import chisel3.util.{DecoupledIO, Valid}
+
+import scala.reflect.runtime.universe.{runtimeMirror, typeOf}
 
 object GCDParameter {
   implicit def rwP: upickle.default.ReadWriter[GCDParameter] =
@@ -28,8 +30,10 @@ class GCDProbe(parameter: GCDParameter) extends Bundle {
 class GCDOM(parameter: GCDParameter) extends Class {
   val width:         Property[Int]     = IO(Output(Property[Int]()))
   val useAsyncReset: Property[Boolean] = IO(Output(Property[Boolean]()))
+  val generator:     Property[String]  = IO(Output(Property[String]))
   width         := Property(parameter.width)
   useAsyncReset := Property(parameter.useAsyncReset)
+  generator     := Property(upickle.default.write(SerializableModuleGenerator(classOf[GCD], GCDParameter(32, false))))
 }
 
 /** Interface of [[GCD]]. */
